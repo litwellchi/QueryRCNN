@@ -1,5 +1,6 @@
 import train_utils
 import dataset.transforms as T
+# from torchvision import transforms as T
 import datetime
 import os
 import time
@@ -12,21 +13,21 @@ from engine import train_one_epoch, evaluate
 from dataset.group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
 import argparse
 import torchvision
-
+import torchvision_custom
 import cv2
 import random
 
 def get_args():
     parser = argparse.ArgumentParser(description='Pytorch Faster-rcnn Training')
 
-    parser.add_argument('--data_path', default='/public/yzy/coco/2017/', help='dataset path')
+    parser.add_argument('--data_path', default='/home/xwchi/data/real/dataset2', help='dataset path')
     parser.add_argument('--model', default='fasterrcnn_resnet50_fpn', help='model')
     parser.add_argument('--dataset', default='coco', help='dataset')
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--b', '--batch_size', default=16, type=int)
     parser.add_argument('--epochs', default=20, type=int, metavar='N',
                         help='number of total epochs to run')    
-    parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
+    parser.add_argument('-j', '--workers', default=1, type=int, metavar='N',
                         help='number of data loading workers (default: 16)')
     parser.add_argument('--lr', default=0.02, type=float, help='initial learning rate')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
@@ -62,13 +63,13 @@ def get_args():
 
 def get_dataset(name, image_set, transform):
     paths = {
-        "coco": ('/public/yzy/coco/2017/', get_coco, 91),
-        "coco_kp": ('/datasets01/COCO/022719/', get_coco_kp, 2)
+        "coco": ('/home/xwchi/data/real/dataset2', get_coco, 2),
+        "coco_kp": ('/home/xwchi/data/real/dataset2', get_coco_kp, 2)
     }
     p, ds_fn, num_classes = paths[name]
 
     ds = ds_fn(p, image_set=image_set, transforms=transform)
-    return ds, num_classes
+    return ds, num_classes 
 
 
 def get_transform(train):
@@ -87,7 +88,7 @@ def main():
 
     # Data loading
     print("Loading data")
-    dataset, num_classes = get_dataset(args.dataset, "train", get_transform(train=True))
+    dataset, num_classes = get_dataset(args.dataset, "train",get_transform(train=True))
     dataset_test, _ = get_dataset(args.dataset, "val", get_transform(train=False))    
 
     print("Creating data loaders")
@@ -109,6 +110,10 @@ def main():
         dataset, batch_sampler=train_batch_sampler, num_workers=args.workers,
         collate_fn=train_utils.collate_fn)
 
+    # data_loader = torch.utils.data.DataLoader(
+    #     dataset, batch_size=2, shuffle=True, num_workers=4,
+    #     collate_fn=train_utils.collate_fn)
+
     data_loader_test = torch.utils.data.DataLoader(
         dataset_test, batch_size=args.b,
         sampler=test_sampler, num_workers=args.workers,
@@ -117,9 +122,9 @@ def main():
     # Model creating
     print("Creating model")
     # model = models.__dict__[args.model](num_classes=num_classes, pretrained=args.pretrained)   
-    model = torchvision.models.detection.__dict__[args.model](num_classes=num_classes,
+    model = torchvision_custom.models.detection.__dict__[args.model](num_classes=num_classes,
                                                               pretrained=args.pretrained)
-
+    # model = torchvision_custom.models.fasterrcnn_res
     device = torch.device(args.device)
     model.to(device)
 
