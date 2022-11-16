@@ -40,7 +40,7 @@ def get_args():
     parser.add_argument('--lr-steps', default=[8, 11], nargs='+', type=int, help='decrease lr every step-size epochs')
     parser.add_argument('--lr-gamma', default=0.1, type=float, help='decrease lr by a factor of lr-gamma')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
-    parser.add_argument('--test_only', default=False, type=bool, help='resume from checkpoint')
+    parser.add_argument('--test_only', default=True, type=bool, help='resume from checkpoint')
     parser.add_argument('--output-dir', default='./result', help='path where to save')
     parser.add_argument('--aspect-ratio-group-factor', default=0, type=int)
     parser.add_argument(
